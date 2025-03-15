@@ -1,65 +1,67 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Parse Content</title>
-    
 </head>
 <body>
     <iframe id="contentFrame" width="1200" height="800" style="border:none;"></iframe>
 
     <script>
         async function fetchAndParseContent() {
-            const response = await fetch('https://www.finn.no/profile/reviews?userId=1079397917');
-            const text = await response.text();
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(text, 'text/html');
-            const targetDiv = doc.querySelector('.grid.grid-cols-1.md\\:grid-cols-3.gap-32.mb-32');
-            
             const iframe = document.getElementById('contentFrame');
             const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-            iframeDoc.open();
 
-            if (doc) {
+            try {
+                const response = await fetch('https://www.finn.no/profile/reviews?userId=1079397917');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const text = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, 'text/html');
 
-                // Prepend 'https://www.finn.no' to any relative links containing 'profile/ads?'
-                const links = doc.querySelectorAll('a[href*="/profile/ads?"]');
-                links.forEach(link => {
-                    link.href = 'https://www.finn.no' + link.getAttribute('href');
-                    link.target = '_blank';
-                });
-
-                // Prepend 'https://www.finn.no' to any URL with a number followed by '?userId=1079397917' and target the link to the 'content' div
-                const userIdLinks = doc.querySelectorAll('a[href*="?userId=1079397917"]');
-                userIdLinks.forEach(link => {
-                    const href = link.getAttribute('href');
-                    if (/\/\d+\?userId=1079397917/.test(href)) {
-                        link.href = 'https://www.finn.no' + href;
+                if (doc) {
+                    // Prepend 'https://www.finn.no' to any relative links containing 'profile/ads?'
+                    const links = doc.querySelectorAll('a[href*="/profile/ads?"]');
+                    links.forEach(link => {
+                        link.href = 'https://www.finn.no' + link.getAttribute('href');
                         link.target = '_blank';
-                    }
-                });
+                    });
 
+                    // Prepend 'https://www.finn.no' to any URL with a number followed by '?userId=1079397917' and target the link to the 'content' div
+                    const userIdLinks = doc.querySelectorAll('a[href*="?userId=1079397917"]');
+                    userIdLinks.forEach(link => {
+                        const href = link.getAttribute('href');
+                        if (/\/\d+\?userId=1079397917/.test(href)) {
+                            link.href = 'https://www.finn.no' + href;
+                            link.target = '_blank';
+                        }
+                    });
+
+                    iframeDoc.open();
+                    iframeDoc.write(`
+                        <html>
+                        <head>
+                            <link rel="stylesheet" href="https://assets.finn.no/pkg/@warp-ds/fonts/v1/finn-no.css">
+                            <link rel="stylesheet" href="https://assets.finn.no/pkg/@warp-ds/css/v2/tokens/finn-no.css">
+                            <link rel="stylesheet" href="https://assets.finn.no/pkg/@warp-ds/css/v2/resets.css">
+                            <link rel="stylesheet" href="https://assets.finn.no/pkg/@warp-ds/css/v2/components.css">
+                            <link href="https://assets.finn.no/pkg/trust-public-profile-layout/1.0.99/styles.css" media="all" type="text/css" rel="stylesheet">
+                        </head>
+                        <body>
+                            <div id="content">${doc.body.innerHTML}</div>
+                        </body>
+                        </html>
+                    `);
+                    iframeDoc.close();
+                }
+            } catch (error) {
+                console.error('Error fetching or parsing content:', error);
+                iframeDoc.open();
                 iframeDoc.write(`
                     <html>
-                    <head>
-        <link rel="stylesheet" href="https://assets.finn.no/pkg/@warp-ds/fonts/v1/finn-no.css">
-        <link rel="stylesheet" href="https://assets.finn.no/pkg/@warp-ds/css/v2/tokens/finn-no.css">
-        <link rel="stylesheet" href="https://assets.finn.no/pkg/@warp-ds/css/v2/resets.css">
-        <link rel="stylesheet" href="https://assets.finn.no/pkg/@warp-ds/css/v2/components.css">
-        <link href="https://assets.finn.no/pkg/trust-public-profile-layout/1.0.99/styles.css" media="all" type="text/css" rel="stylesheet">
-        
-                    </head>
-                    <body>
-                        <div id="content">${doc.innerHTML}</div>
-                    </body>
-                    </html>
-                `);
-                
-            } else {
-                iframeDoc.write(`
-                     <html>
                     <head>
                         <style>
                             body {
@@ -72,12 +74,11 @@
                     </body>
                     </html>
                 `);
+                iframeDoc.close();
             }
-            iframeDoc.close();
         }
 
         fetchAndParseContent();
     </script>
 </body>
 </html>
-
