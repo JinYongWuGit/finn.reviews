@@ -42,18 +42,7 @@
 
                     iframeDoc.open();
                     iframeDoc.write(`
-                        <html>
-                        <head>
-                            <link rel="stylesheet" href="https://assets.finn.no/pkg/@warp-ds/fonts/v1/finn-no.css">
-                            <link rel="stylesheet" href="https://assets.finn.no/pkg/@warp-ds/css/v2/tokens/finn-no.css">
-                            <link rel="stylesheet" href="https://assets.finn.no/pkg/@warp-ds/css/v2/resets.css">
-                            <link rel="stylesheet" href="https://assets.finn.no/pkg/@warp-ds/css/v2/components.css">
-                            <link href="https://assets.finn.no/pkg/trust-public-profile-layout/1.0.99/styles.css" media="all" type="text/css" rel="stylesheet">
-                        </head>
-                        <body>
-                            <div id="content">${doc.body.innerHTML}</div>
-                        </body>
-                        </html>
+                        ${doc.body.innerHTML}
                     `);
                     iframeDoc.close();
                 }
