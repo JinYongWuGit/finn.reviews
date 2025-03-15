@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parse Content</title>
+    
+</head>
+<body>
+    <iframe id="contentFrame" width="1200" height="800" style="border:none;"></iframe>
+
+    <script>
+        async function fetchAndParseContent() {
+            const response = await fetch('https://www.finn.no/profile/reviews?userId=1079397917');
+            const text = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(text, 'text/html');
+            // const targetDiv = doc.querySelector('.-mt-16.md\\:mt-0.md\\:col-start-2.md\\:col-span-2');
+            const targetDiv = doc.querySelector('D.grid.grid-cols-1.md\\:grid-cols-3.gap-32.mb-32');
+            
+            const iframe = document.getElementById('contentFrame');
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            iframeDoc.open();
+
+            if (targetDiv) {
+
+                // Prepend 'https://www.finn.no' to any relative links containing 'profile/ads?'
+                const links = targetDiv.querySelectorAll('a[href*="/profile/ads?"]');
+                links.forEach(link => {
+                    link.href = 'https://www.finn.no' + link.getAttribute('href');
+                    link.target = '_blank';
+                });
+
+                // Prepend 'https://www.finn.no' to any URL with a number followed by '?userId=1079397917' and target the link to the 'content' div
+                const userIdLinks = targetDiv.querySelectorAll('a[href*="?userId=1079397917"]');
+                userIdLinks.forEach(link => {
+                    const href = link.getAttribute('href');
+                    if (/\/\d+\?userId=1079397917/.test(href)) {
+                        link.href = 'https://www.finn.no' + href;
+                        link.target = '_blank';
+                    }
+                });
+
+                iframeDoc.write(`
+                    <html>
+                    <head>
+                        <link rel="preload" href="https://assets.finn.no/pkg/@warp-ds/fonts/v1/FINNTypeStrippet-Light.woff2" as="font" type="font/woff2" crossorigin>
+        <link rel="preload" href="https://assets.finn.no/pkg/@warp-ds/fonts/v1/FINNTypeStrippet-Medium.woff2" as="font" type="font/woff2" crossorigin>
+        <link rel="stylesheet" href="https://assets.finn.no/pkg/@warp-ds/fonts/v1/finn-no.css">
+        <link rel="stylesheet" href="https://assets.finn.no/pkg/@warp-ds/css/v2/tokens/finn-no.css">
+        <link rel="stylesheet" href="https://assets.finn.no/pkg/@warp-ds/css/v2/resets.css">
+        <link rel="stylesheet" href="https://assets.finn.no/pkg/@warp-ds/css/v2/components.css">
+        <link href="https://assets.finn.no/pkg/trust-public-profile-layout/1.0.99/styles.css" media="all" type="text/css" rel="stylesheet">
+        <link href="https://static.finncdn.no/_c/common-browserbundle/v5.0.0/main.min.js" crossorigin as="script" rel="preload">
+        <link href="https://assets.finn.no/pkg/trust-public-profile-layout/1.0.99/index.js" crossorigin as="script" rel="preload">
+        <link href="https://assets.finn.no/pkg/topbar/1.0.397/header.js" crossorigin as="script" rel="preload">
+        <link href="https://assets.finn.no/pkg/footer/1.1.168/footer.js" crossorigin as="script" rel="preload">
+        
+                    </head>
+                    <body>
+                        <div id="content">${targetDiv.innerHTML}</div>
+                    </body>
+                    </html>
+                `);
+                
+            } else {
+                iframeDoc.write(`
+                     <html>
+                    <head>
+                        <style>
+                            body {
+                                overflow: auto; /* Adds scroll bars */
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <img src="https://cdn.shopify.com/s/files/1/0690/6727/6388/files/screencapture-finn-no-profile-reviews-2025-03-14-20_21_29.png?v=1741980467" alt="Fallback Image">
+                    </body>
+                    </html>
+                `);
+            }
+            iframeDoc.close();
+        }
+
+        fetchAndParseContent();
+    </script>
+</body>
+</html>
