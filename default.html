@@ -15,7 +15,6 @@
             const text = await response.text();
             const parser = new DOMParser();
             const doc = parser.parseFromString(text, 'text/html');
-            // const targetDiv = doc.querySelector('.-mt-16.md\\:mt-0.md\\:col-start-2.md\\:col-span-2');
             const targetDiv = doc.querySelector('.grid.grid-cols-1.md\\:grid-cols-3.gap-32.mb-32');
             
             const iframe = document.getElementById('contentFrame');
