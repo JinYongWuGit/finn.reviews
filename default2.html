@@ -22,17 +22,17 @@
             const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
             iframeDoc.open();
 
-            if (text) {
+            if (doc) {
 
                 // Prepend 'https://www.finn.no' to any relative links containing 'profile/ads?'
-                const links = text.querySelectorAll('a[href*="/profile/ads?"]');
+                const links = doc.querySelectorAll('a[href*="/profile/ads?"]');
                 links.forEach(link => {
                     link.href = 'https://www.finn.no' + link.getAttribute('href');
                     link.target = '_blank';
                 });
 
                 // Prepend 'https://www.finn.no' to any URL with a number followed by '?userId=1079397917' and target the link to the 'content' div
-                const userIdLinks = text.querySelectorAll('a[href*="?userId=1079397917"]');
+                const userIdLinks = doc.querySelectorAll('a[href*="?userId=1079397917"]');
                 userIdLinks.forEach(link => {
                     const href = link.getAttribute('href');
                     if (/\/\d+\?userId=1079397917/.test(href)) {
@@ -52,7 +52,7 @@
         
                     </head>
                     <body>
-                        <div id="content">${text.innerHTML}</div>
+                        <div id="content">${doc.innerHTML}</div>
                     </body>
                     </html>
                 `);
