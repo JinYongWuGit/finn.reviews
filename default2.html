@@ -40,7 +40,8 @@
 
             if (profileContent) {
                 prependBaseUrlToRelativeLinks(profileContent);
-                writeIframeContent(iframeDoc, profileContent);
+                const styleLinks = getHeadStyleSheetLinks(doc);
+                writeIframeContent(iframeDoc, profileContent, styleLinks);
             } else {
                 displayFallbackImage(iframeDoc);
             }
@@ -50,6 +51,12 @@
             displayFallbackImage(iframeDoc);
         }
         iframeDoc.close();
+    }
+
+    function getHeadStyleSheetLinks(doc) {
+        const headLinks = doc.head.querySelectorAll('link[rel="stylesheet"]');
+        const stylesheetLinks = Array.from(headLinks).map(link => link.href);
+        return stylesheetLinks;
     }
 
     function prependBaseUrlToRelativeLinks(profileContent) {
@@ -62,14 +69,13 @@
         });
     }
 
-    function writeIframeContent(iframeDoc, profileContent) {
+    function writeIframeContent(iframeDoc, profileContent, styleLinks) {
+        // Generate the <link> elements dynamically from the styleLinks array
+        const stylesheetLinks = styleLinks.map(link => `<link rel="stylesheet" href="${link}">`).join('\n');
+
         iframeDoc.write(`
             <head>
-                <link rel="stylesheet" href="https://assets.finn.no/pkg/@warp-ds/fonts/v1/finn-no.css">
-                <link rel="stylesheet" href="https://assets.finn.no/pkg/@warp-ds/css/v2/tokens/finn-no.css">
-                <link rel="stylesheet" href="https://assets.finn.no/pkg/@warp-ds/css/v2/resets.css">
-                <link rel="stylesheet" href="https://assets.finn.no/pkg/@warp-ds/css/v2/components.css">
-                <link href="https://assets.finn.no/pkg/trust-public-profile-layout/1.0.99/styles.css" media="all" type="text/css" rel="stylesheet">
+                ${stylesheetLinks}
             </head>
             
             <div id="content">${profileContent.innerHTML}</div>
